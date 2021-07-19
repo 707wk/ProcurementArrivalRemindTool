@@ -1,0 +1,206 @@
+﻿<Window x:Class="MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ProcurementArrivalRemindTool"
+        mc:Ignorable="d"
+        Title="MainWindow"
+        Height="480"
+        Width="800"
+        Icon="../Resources/logo_256px.png"
+        WindowStartupLocation="CenterScreen"
+        WindowState="Normal"
+        FontFamily="微软雅黑"
+        Loaded="Window_Loaded"
+        Closing="Window_Closing">
+
+    <Window.Resources>
+
+        <Style TargetType="MenuItem">
+            <Setter Property="Padding"
+                    Value="4" />
+        </Style>
+
+        <Style TargetType="TextBlock">
+            <Setter Property="Margin"
+                    Value="3" />
+            <Setter Property="VerticalAlignment"
+                    Value="Center" />
+        </Style>
+
+        <Style TargetType="TextBox">
+            <Setter Property="VerticalContentAlignment"
+                    Value="Center" />
+            <Setter Property="Margin"
+                    Value="3" />
+            <Setter Property="MinHeight"
+                    Value="24" />
+        </Style>
+
+        <Style TargetType="GroupBox">
+            <Setter Property="Margin"
+                    Value="3" />
+        </Style>
+
+    </Window.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="auto" />
+            <RowDefinition />
+            <RowDefinition Height="auto" />
+        </Grid.RowDefinitions>
+
+        <Menu Grid.Row="0">
+            <MenuItem  Header="文件(_F)">
+                <MenuItem Header="退出(_X)"
+                          Click="Shutdown" />
+            </MenuItem>
+            <MenuItem  Header="帮助(_H)">
+                <MenuItem Header="更新历史(_U)"
+                          Click="UpdateInfoMenuItem_Click" />
+                <MenuItem Header="关于(_A)"
+                          Click="AboutMenuItem_Click" />
+            </MenuItem>
+        </Menu>
+
+        <StackPanel Grid.Row="1">
+
+            <GroupBox Header="常规设置">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="开机自启 :"
+                               Grid.Row="0"
+                               Grid.Column="0" />
+                    <CheckBox x:Name="StartAutoRun"
+                              Content="启用"
+                              Grid.Row="0"
+                              Grid.Column="1"
+                              Margin="3" />
+
+                    <TextBlock Text="查询时间间隔(分钟) :"
+                               Grid.Row="1"
+                               Grid.Column="0" />
+                    <local:PropertySelectControl x:Name="SearchTimeSpan"
+                                                 IsEditable="True"
+                                                 HistoryItemKey="SearchTimeSpan"
+                                                 Grid.Row="1"
+                                                 Grid.Column="1"
+                                                 Margin="3"
+                                                 Width="120"
+                                                 HorizontalAlignment="Left" />
+
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Header="ERP参数设置">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="数据库连接字符串 :"
+                               Grid.Row="0"
+                               Grid.Column="0" />
+                    <local:PropertySelectControl x:Name="ERPSqlServerConnStr"
+                                                 IsEditable="True"
+                                                 HistoryItemKey="ERPSqlServerConnStr"
+                                                 Grid.Row="0"
+                                                 Grid.Column="1"
+                                                 Margin="3" />
+
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Header="钉钉参数设置">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="auto" />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBlock Text="AgentId :"
+                               Grid.Row="0"
+                               Grid.Column="0" />
+                    <local:PropertySelectControl x:Name="DingTalkAgentIdStr"
+                                                 IsEditable="True"
+                                                 HistoryItemKey="DingTalkAgentIdStr"
+                                                 Grid.Row="0"
+                                                 Grid.Column="1"
+                                                 Margin="3" />
+
+                    <TextBlock Text="AppKey :"
+                               Grid.Row="1"
+                               Grid.Column="0" />
+                    <local:PropertySelectControl x:Name="DingTalkAppKey"
+                                                 IsEditable="True"
+                                                 HistoryItemKey="DingTalkAppKey"
+                                                 Grid.Row="1"
+                                                 Grid.Column="1"
+                                                 Margin="3" />
+
+                    <TextBlock Text="AppSecret :"
+                               Grid.Row="2"
+                               Grid.Column="0" />
+                    <local:PropertySelectControl x:Name="DingTalkAppSecret"
+                                                 IsEditable="True"
+                                                 HistoryItemKey="DingTalkAppSecret"
+                                                 Grid.Row="2"
+                                                 Grid.Column="1"
+                                                 Margin="3" />
+
+                </Grid>
+            </GroupBox>
+
+        </StackPanel>
+
+        <StackPanel Grid.Row="2"
+                    Grid.ColumnSpan="2"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Right"
+                    Margin="3">
+
+            <Button Content="查找数据"
+                    Width="120"
+                    Margin="3"
+                    Padding="3"
+                    Click="SendMessage" />
+
+            <Button Content="保存修改"
+                    Width="120"
+                    Margin="3"
+                    Padding="3"
+                    Click="SaveChange" />
+
+            <Button Content="取消"
+                    Width="120"
+                    Margin="3"
+                    Padding="3"
+                    Click="NotSaveChange">
+            </Button>
+
+        </StackPanel>
+
+    </Grid>
+
+</Window>
