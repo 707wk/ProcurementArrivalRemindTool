@@ -24,7 +24,7 @@ Class MainWindow
         StartAutoRun.IsChecked = AppSettingHelper.Instance.StartAutoRun
 
         SendTimer = New Timer With {
-            .Interval = 40 * 1000
+            .Interval = 60 * 1000
         }
         AddHandler SendTimer.Elapsed, AddressOf SendTimerElapsed
 
@@ -43,14 +43,25 @@ Class MainWindow
             Exit Sub
         End If
 
+        ' 清空昨天的发送记录
+        If Now.Year <> AppSettingHelper.Instance.LastSendDate.Year AndAlso
+            Now.Month <> AppSettingHelper.Instance.LastSendDate.Month AndAlso
+            Now.Day <> AppSettingHelper.Instance.LastSendDate.Day Then
+
+            AppSettingHelper.Instance.SendDocumentIDItems.Clear()
+            Analytics.TrackEvent("清空昨天的发送记录")
+            AppSettingHelper.Instance.Logger.Info("清空昨天的发送记录")
+
+        End If
+
         AppSettingHelper.Instance.LastSendDate = Now
         AppSettingHelper.SaveToLocaltion()
 
         Analytics.TrackEvent("自动查找数据")
         AppSettingHelper.Instance.Logger.Info("自动查找数据")
-        Exit Sub
+
         Me.Dispatcher.Invoke(Sub()
-                                 SendMessage(Nothing, Nothing)
+                                 WorkFunction(Nothing, Nothing)
                              End Sub)
 
     End Sub
@@ -91,7 +102,7 @@ Class MainWindow
 
     End Sub
 
-    Private Sub SendMessage(sender As Object, e As RoutedEventArgs)
+    Private Sub WorkFunction(sender As Object, e As RoutedEventArgs)
 
         If e IsNot Nothing Then
             Analytics.TrackEvent("手动查找数据")
@@ -105,7 +116,7 @@ Class MainWindow
         tmpWindow.Run(Sub(uie)
                           Dim stepCount = 5
 
-#Region "获取未结束表单"
+#Region "获取今天到货物料列表"
                           uie.Write("获取未结束表单", 0 * 100 / stepCount)
 
                           AppSettingHelper.Instance.DocumentItems.Clear()
@@ -114,73 +125,58 @@ Class MainWindow
                               SqlConn.Open()
 
                               Using tmpSqlCommand = SqlConn.CreateCommand
-                                  tmpSqlCommand.CommandText = $"select
-
-INVTF.TF003 as 交易日期,
-INVTF.TF004 as 交易对象,
-INVTF.TF005 as 对象编号,
-INVTF.TF006 as 对象简称,
-INVTF.TF015 as 对象全称,
-INVTF.TF008 as 员工编号,
+                                  tmpSqlCommand.CommandText = $"select 
+PURTD.TD026 as 请购单别,
+PURTD.TD027 as 请购单号,
+PURTD.TD028 as 请购序号,
+PURTA.TA003 as 请购日期,
+PURTA.TA012 as 请购人员,
 CMSMV.MV002 as 员工姓名,
-rtrim(CMSMQ.MQ002)+'('+TempINVTG.TG001+')' as 交易单别,
-TempINVTG.TG002 as 交易单号,
-TempINVTG.MaterialCount as 需归还物品种数,
-TempINVTG1.MinDate as 最近需归还日期
+PURTB.TB009 as 请购数量,
+PURTD.TD004 as 品号,
+PURTD.TD005 as 品名,
+PURTD.TD006 as 规格,
+rtrim(CMSMC.MC002)+'('+rtrim(TempPURTH.TH009)+')' as 仓库,
+TempPURTH.TH015 as 验收数量,
+TempPURTH.TH014 as 验收日期
 
 from
+    (select
+    *
 
--- 合并单据信息
-(select
+    -- 进货单单身档
+    from PURTH
+    -- 审核码
+    where TH030='Y'
+    -- 验收日期
+    and TH014='{Now:yyyyMMdd}') as TempPURTH
 
-TG001,
-TG002,
-COUNT(1) as MaterialCount
---MIN(TG027) as MinDate
+-- 采购单单身信息档
+left join PURTD
+on PURTD.TD001=TempPURTH.TH011
+and PURTD.TD002=TempPURTH.TH012
+and PURTD.TD003=TempPURTH.TH013
+and PURTD.TD004=TempPURTH.TH004
 
-from INVTG
+-- 请购单单身信息档
+left join PURTB
+on PURTB.TB001=PURTD.TD026
+and PURTB.TB002=PURTD.TD027
+and PURTB.TB003=PURTD.TD028
+and PURTB.TB004=PURTD.TD004
 
-where TG022='Y'
-and TG024='N'
-and TG009>0
+-- 请购单单头信息档
+left join PURTA
+on PURTA.TA001=PURTB.TB001
+and PURTA.TA002=PURTB.TB002
 
-group by TG001,TG002
-
-) as TempINVTG
-
--- 计算有效日期
-left join(select
-
-TG001,
-TG002,
-MIN(TG027) as MinDate
-
-from INVTG
-
-where TG022='Y'
-and TG024='N'
-and TG009>0
-and TG027<>''
-
-group by TG001,TG002
-
-) as TempINVTG1
-on TempINVTG1.TG001=TempINVTG.TG001
-and TempINVTG1.TG002=TempINVTG.TG002
-
--- 关联员工及对象信息
-left join INVTF
-on INVTF.TF001=TempINVTG.TG001
-and INVTF.TF002=TempINVTG.TG002
+-- 仓库信息档
+left join CMSMC
+on CMSMC.MC001=TempPURTH.TH009
 
 -- 关联员工基本信息
 left join CMSMV
-on CMSMV.MV001=INVTF.TF008
-
-left join CMSMQ
-on CMSMQ.MQ001=TempINVTG.TG001
-
-order by 交易日期
+on CMSMV.MV001=PURTA.TA012
 "
 
                                   Using tmpSqlDataReader = tmpSqlCommand.ExecuteReader
@@ -188,16 +184,19 @@ order by 交易日期
                                       While tmpSqlDataReader.Read
 
                                           Dim tmpDocumentInfo = New DocumentInfo With {
-                                              .JYRQ = Date.ParseExact($"{tmpSqlDataReader(0)}", "yyyyMMdd", Nothing),
-                                              .JYDX = Val($"{tmpSqlDataReader(1)}"),
-                                              .DXBH = $"{tmpSqlDataReader(2)}".Trim,
-                                              .DXJC = $"{tmpSqlDataReader(3)}".Trim,
-                                              .DXQC = $"{tmpSqlDataReader(4)}".Trim,
-                                              .YGBH = $"{tmpSqlDataReader(5)}".Trim,
-                                              .YGXM = $"{tmpSqlDataReader(6)}".Trim,
-                                              .JYDB = $"{tmpSqlDataReader(7)}".Trim,
-                                              .JYDH = $"{tmpSqlDataReader(8)}".Trim,
-                                              .XGHWPZS = tmpSqlDataReader(9)
+                                              .QGDB = $"{tmpSqlDataReader(0)}".Trim,
+                                              .QGDH = Val($"{tmpSqlDataReader(1)}"),
+                                              .QGXH = $"{tmpSqlDataReader(2)}".Trim,
+                                              .QGRQ = Date.ParseExact($"{tmpSqlDataReader(3)}", "yyyyMMdd", Nothing),
+                                              .QGRY = $"{tmpSqlDataReader(4)}".Trim,
+                                              .YGXM = $"{tmpSqlDataReader(5)}".Trim,
+                                              .QGSL = tmpSqlDataReader(6),
+                                              .PH = $"{tmpSqlDataReader(7)}".Trim,
+                                              .PM = $"{tmpSqlDataReader(8)}".Trim,
+                                              .GG = $"{tmpSqlDataReader(9)}".Trim,
+                                              .CK = $"{tmpSqlDataReader(10)}".Trim,
+                                              .YSSL = tmpSqlDataReader(11),
+                                              .YSRQ = Date.ParseExact($"{tmpSqlDataReader(12)}", "yyyyMMdd", Nothing)
                                           }
 
                                           AppSettingHelper.Instance.DocumentItems.Add(tmpDocumentInfo)
@@ -214,38 +213,45 @@ order by 交易日期
                           Console.WriteLine($"表单数 : {AppSettingHelper.Instance.DocumentItems.Count}")
 #End Region
 
-#Region "获取钉钉AccessToken"
-                          uie.Write("获取钉钉AccessToken", 1 * 100 / stepCount)
+                          ' 判断是否有无对应的钉钉账号的ERP用户
+                          If Not AppSettingHelper.Instance.DocumentItems.All(Function(s1)
+                                                                                 Return AppSettingHelper.Instance.DingTalkUserJobNumberItems.ContainsKey(s1.QGRY)
+                                                                             End Function) Then
 
-                          GetDingTalkAccessToken()
+#Region "获取钉钉AccessToken"
+                              uie.Write("获取钉钉AccessToken", 1 * 100 / stepCount)
+
+                              GetDingTalkAccessToken()
 #End Region
 
 #Region "获取钉钉部门信息"
-                          uie.Write("获取钉钉部门信息", 2 * 100 / stepCount)
+                              uie.Write("获取钉钉部门信息", 2 * 100 / stepCount)
 
-                          AppSettingHelper.Instance.DingTalkDepartmentIDItems.Clear()
+                              AppSettingHelper.Instance.DingTalkDepartmentIDItems.Clear()
 
-                          GetDingTalkDepartmentIDItems(1)
+                              GetDingTalkDepartmentIDItems(1)
 
-                          Console.WriteLine($"部门数 : {AppSettingHelper.Instance.DingTalkDepartmentIDItems.Count}")
+                              Console.WriteLine($"部门数 : {AppSettingHelper.Instance.DingTalkDepartmentIDItems.Count}")
 #End Region
 
 #Region "获取钉钉员工信息"
-                          uie.Write("获取钉钉员工信息", 3 * 100 / stepCount)
+                              uie.Write("获取钉钉员工信息", 3 * 100 / stepCount)
 
-                          AppSettingHelper.Instance.DingTalkUserJobNumberItems.Clear()
+                              AppSettingHelper.Instance.DingTalkUserJobNumberItems.Clear()
 
-                          Dim tmpID = 1
-                          For Each item In AppSettingHelper.Instance.DingTalkDepartmentIDItems
+                              Dim tmpID1 = 1
+                              For Each item In AppSettingHelper.Instance.DingTalkDepartmentIDItems
 
-                              uie.Write($"获取钉钉员工信息 {tmpID}/{AppSettingHelper.Instance.DingTalkDepartmentIDItems.Count}")
-                              tmpID += 1
+                                  uie.Write($"获取钉钉员工信息 {tmpID1}/{AppSettingHelper.Instance.DingTalkDepartmentIDItems.Count}")
+                                  tmpID1 += 1
 
-                              GetDingTalkUserItems(item)
-                          Next
+                                  GetDingTalkUserItems(item)
+                              Next
 
-                          Console.WriteLine($"有工号的员工数 : {AppSettingHelper.Instance.DingTalkUserJobNumberItems.Count}")
+                              Console.WriteLine($"有工号的员工数 : {AppSettingHelper.Instance.DingTalkUserJobNumberItems.Count}")
 #End Region
+
+                          End If
 
 #Region "发送工作通知消息"
                           uie.Write("发送工作通知消息", 4 * 100 / stepCount)
@@ -253,45 +259,53 @@ order by 交易日期
                           ' 无对应的钉钉账号的ERP用户
                           Dim NotHaveJobNumberUserItems As New Dictionary(Of String, String)
 
-                          tmpID = 1
+                          Dim tmpID = 1
                           For Each item In AppSettingHelper.Instance.DocumentItems
 
                               uie.Write($"发送工作通知消息 {tmpID}/{AppSettingHelper.Instance.DocumentItems.Count}")
                               tmpID += 1
 
-                              ' 判断是否需要提醒
-                              If False Then
+                              ' 判断是否发送过
+                              If AppSettingHelper.Instance.SendDocumentIDItems.Contains(String.Join("-",
+                                                                                                    {
+                                                                                                    item.QGDB,
+                                                                                                    item.QGDH,
+                                                                                                    item.QGXH,
+                                                                                                    $"{item.YSSL:n2}",
+                                                                                                    $"{item.YSRQ:d}"
+                                                                                                    })) Then
                                   Continue For
                               End If
 
-                              ' 判断是否有对应的钉钉账号
-                              If Not AppSettingHelper.Instance.DingTalkUserJobNumberItems.ContainsKey(item.YGBH) Then
+                              'SendDingTalkWorkMessage("3349644230885065", item)
+                              'Exit For
 
-                                  If Not NotHaveJobNumberUserItems.ContainsKey(item.YGBH) Then
-                                      NotHaveJobNumberUserItems.Add(item.YGBH, item.YGXM)
+                              ' 判断是否有对应的钉钉账号
+                              If Not AppSettingHelper.Instance.DingTalkUserJobNumberItems.ContainsKey(item.QGRY) Then
+
+                                  If Not NotHaveJobNumberUserItems.ContainsKey(item.QGRY) Then
+                                      NotHaveJobNumberUserItems.Add(item.QGRY, item.YGXM)
 
                                   End If
 
                                   Continue For
                               End If
 
-                              ' 发送消息
-                              SendDingTalkWorkMessage(AppSettingHelper.Instance.DingTalkUserJobNumberItems(item.YGBH), item)
+                              AppSettingHelper.Instance.SendDocumentIDItems.Add(String.Join("-",
+                                                                                            {
+                                                                                            item.QGDB,
+                                                                                            item.QGDH,
+                                                                                            item.QGXH,
+                                                                                            $"{item.YSSL:n2}",
+                                                                                            $"{item.YSRQ:d}"
+                                                                                            }))
 
-                              'SendDingTalkMessage("3349644230885065", item)
-                              'Exit For
+                              ' 发送消息
+                              SendDingTalkWorkMessage(AppSettingHelper.Instance.DingTalkUserJobNumberItems(item.QGRY), item)
 
                           Next
 
-                          'Using tmpStreamWriter As New StreamWriter("无对应的钉钉账号的ERP用户.txt", False)
-
-                          '    tmpStreamWriter.WriteLine($"工号{vbTab}姓名")
-
-                          '    For Each item In NotHaveJobNumberUserItems
-                          '        tmpStreamWriter.WriteLine($"{item.Key}{vbTab}{item.Value}")
-                          '    Next
-
-                          'End Using
+                          AppSettingHelper.SaveToLocaltion()
 
                           ' 通知管理员更新账号信息
                           If NotHaveJobNumberUserItems.Count > 0 Then
@@ -419,16 +433,15 @@ order by 交易日期
             .Msgtype = "markdown"
         }
         Dim obj2 As New OapiMessageCorpconversationAsyncsendV2Request.MarkdownDomain With {
-            .Text = $"**<font color=#1296DB>{doc.JYDB} - {doc.JYDH}</font>**
+            .Text = $"**<font color=#1296DB>{doc.PM}({doc.PH})</font>**
 
 ------
-通知时间 : {Now:G}  
-交易日期 : {doc.JYRQ:d}  
-交易对象 : {doc.JYDXStr}  
-借出/入对象 : {doc.DXQC}({doc.DXBH})  
-需归还物品种数 : {doc.XGHWPZS}  
-最近需归还日期 : {doc.ZJXGHRQ:d}",
-            .Title = $"{doc.JYDB} - {doc.JYDH}"
+物料规格 : {doc.GG}  
+请购日期 : {doc.QGRQ:d}  
+请购数量 : {doc.QGSL:n2}  
+验收仓库 : {doc.CK}  
+验收数量 : {doc.YSSL:n2}",
+            .Title = $"{doc.CK} - {doc.PH}"
         }
         obj1.Markdown = obj2
         req.Msg_ = obj1
@@ -442,6 +455,8 @@ order by 交易日期
     ''' 发送消息给所有主管理员
     ''' </summary>
     Private Sub SendDingTalkMessageToAdmin(msg As String)
+
+        'SendDingTalkAdminMessage("3349644230885065", msg)
 
         For Each item In GetDingTalkAdminItems()
             SendDingTalkAdminMessage(item, msg)

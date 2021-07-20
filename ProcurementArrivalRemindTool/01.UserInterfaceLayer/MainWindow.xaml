@@ -184,7 +184,7 @@
                     Width="120"
                     Margin="3"
                     Padding="3"
-                    Click="SendMessage" />
+                    Click="WorkFunction" />
 
             <Button Content="保存修改"
                     Width="120"

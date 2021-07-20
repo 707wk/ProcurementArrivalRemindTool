@@ -1,79 +1,63 @@
 ﻿Public Class DocumentInfo
 
     ''' <summary>
-    ''' 交易日期
+    ''' 请购单别
     ''' </summary>
-    Public JYRQ As Date
+    Public QGDB As String
+    ''' <summary>
+    ''' 请购单号
+    ''' </summary>
+    Public QGDH As String
+    ''' <summary>
+    ''' 请购序号
+    ''' </summary>
+    Public QGXH As String
 
     ''' <summary>
-    ''' 交易对象
+    ''' 请购日期
     ''' </summary>
-    Public JYDX As Integer
-
-    Private Shared JYDXIDToNameItems As New Dictionary(Of Integer, String) From {
-        {1, "客户"},
-        {2, "供应商"},
-        {3, "人员"},
-        {9, "其它"}
-        }
+    Public QGRQ As Date
 
     ''' <summary>
-    ''' 交易对象名称
+    ''' 请购人员
     ''' </summary>
-    Public ReadOnly Property JYDXStr As String
-        Get
-
-            If Not JYDXIDToNameItems.ContainsKey(JYDX) Then
-                Return "未定义"
-            End If
-
-            Return JYDXIDToNameItems(JYDX)
-        End Get
-    End Property
-
-    ''' <summary>
-    ''' 对象编号
-    ''' </summary>
-    Public DXBH As String
-
-    ''' <summary>
-    ''' 对象简称
-    ''' </summary>
-    Public DXJC As String
-
-    ''' <summary>
-    ''' 对象全称
-    ''' </summary>
-    Public DXQC As String
-
-    ''' <summary>
-    ''' 员工编号
-    ''' </summary>
-    Public YGBH As String
-
+    Public QGRY As String
     ''' <summary>
     ''' 员工姓名
     ''' </summary>
     Public YGXM As String
 
     ''' <summary>
-    ''' 交易单别
+    ''' 请购数量
     ''' </summary>
-    Public JYDB As String
+    Public QGSL As Decimal
 
     ''' <summary>
-    ''' 交易单号
+    ''' 品号
     ''' </summary>
-    Public JYDH As String
+    Public PH As String
+    ''' <summary>
+    ''' 品名
+    ''' </summary>
+    Public PM As String
+    ''' <summary>
+    ''' 规格
+    ''' </summary>
+    Public GG As String
 
     ''' <summary>
-    ''' 需归还物品种数
+    ''' 仓库
     ''' </summary>
-    Public XGHWPZS As Integer
+    Public CK As String
 
     ''' <summary>
-    ''' 最近需归还日期
+    ''' 验收数量
     ''' </summary>
-    Public ZJXGHRQ As Date
+    Public YSSL As Decimal
+
+    ''' <summary>
+    ''' 验收日期
+    ''' </summary>
+    Public YSRQ As Date
 
 End Class

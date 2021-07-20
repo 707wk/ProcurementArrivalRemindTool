@@ -303,6 +303,11 @@ Public Class AppSettingHelper
     Public DocumentItems As New List(Of DocumentInfo)
 
     ''' <summary>
+    ''' 已发送表单ID
+    ''' </summary>
+    Public SendDocumentIDItems As New HashSet(Of String)
+
+    ''' <summary>
     ''' 钉钉员工工号查找表
     ''' </summary>
     <Newtonsoft.Json.JsonIgnore>
