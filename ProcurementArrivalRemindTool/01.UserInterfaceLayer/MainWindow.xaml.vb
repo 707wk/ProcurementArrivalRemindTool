@@ -182,6 +182,8 @@ on CMSMC.MC001=TempPURTH.TH009
 -- 关联员工基本信息
 left join CMSMV
 on CMSMV.MV001=PURTA.TA012
+
+where PURTA.TA012 is not null
 "
 
                                   Using tmpSqlDataReader = tmpSqlCommand.ExecuteReader
