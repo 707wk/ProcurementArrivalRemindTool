@@ -418,7 +418,7 @@ where PURTA.TA012 is not null
 
             Next
 
-            Cursor += 1
+            Cursor += req.Size
         Loop
 
     End Sub
