@@ -24,6 +24,10 @@ Public Class SelectUsersWindow
     ''' </summary>
     Private Sub SetUserEnable(node As DingTalkNodeInfo)
 
+        If node Is Nothing Then
+            Exit Sub
+        End If
+
         If node.EnableSelected Then
 
             node.Selected = EnableUserList.Exists(Function(a)
@@ -42,6 +46,10 @@ Public Class SelectUsersWindow
     ''' 获取用户选择状态
     ''' </summary>
     Private Sub GetUserEnable(node As DingTalkNodeInfo)
+
+        If node Is Nothing Then
+            Exit Sub
+        End If
 
         If node.EnableSelected AndAlso
             node.Selected Then
