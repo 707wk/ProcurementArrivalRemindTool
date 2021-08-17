@@ -319,4 +319,19 @@ Public Class AppSettingHelper
     <Newtonsoft.Json.JsonIgnore>
     Public DingTalkDepartmentIDItems As New HashSet(Of Long)
 
+    ''' <summary>
+    ''' 钉钉部门节点
+    ''' </summary>
+    Public DingTalkDepartmentRootNode As DingTalkNodeInfo
+
+    ''' <summary>
+    ''' 忽略用户列表
+    ''' </summary>
+    Public IgnoreUserList As New List(Of DingTalkUserInfo)
+
+    ''' <summary>
+    ''' 抄送用户列表
+    ''' </summary>
+    Public CopyToUserList As New List(Of DingTalkUserInfo)
+
 End Class

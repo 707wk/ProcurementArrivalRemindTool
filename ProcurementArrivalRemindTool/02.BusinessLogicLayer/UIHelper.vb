@@ -21,13 +21,13 @@ Public Class UIHelper
     ''' </summary>
     Public Shared Sub InitChildWindowStyle(win As Window)
 
-        '' 禁用最小化按钮
-        'Dim hwnd = New WindowInteropHelper(win).Handle
-        'Dim value = GetWindowLong(hwnd, GWL_STYLE)
-        'SetWindowLong(hwnd, GWL_STYLE, value And Not WS_MINIMIZEBOX)
+        ' 禁用最小化按钮
+        Dim hwnd = New WindowInteropHelper(win).Handle
+        Dim value = GetWindowLong(hwnd, GWL_STYLE)
+        SetWindowLong(hwnd, GWL_STYLE, value And Not WS_MINIMIZEBOX)
 
-        '' 不显示在任务栏
-        'win.ShowInTaskbar = False
+        ' 不显示在任务栏
+        win.ShowInTaskbar = False
 
     End Sub
 

@@ -195,9 +195,14 @@
     <Compile Include="01.UserInterfaceLayer\MainWindow.xaml.vb">
       <DependentUpon>MainWindow.xaml</DependentUpon>
     </Compile>
+    <Compile Include="01.UserInterfaceLayer\ToolWindows\SelectUsersWindow.xaml.vb">
+      <DependentUpon>SelectUsersWindow.xaml</DependentUpon>
+    </Compile>
     <Compile Include="02.BusinessLogicLayer\LocalDatabaseHelper.vb" />
     <Compile Include="02.BusinessLogicLayer\UIHelper.vb" />
     <Compile Include="03.DataAccessLayer\AppSettingHelper.vb" />
+    <Compile Include="03.DataAccessLayer\DingTalkNodeInfo.vb" />
+    <Compile Include="03.DataAccessLayer\DingTalkUserInfo.vb" />
     <Compile Include="03.DataAccessLayer\DocumentInfo.vb" />
     <Compile Include="03.DataAccessLayer\Tool\AppCenterSparkle.vb" />
     <Compile Include="03.DataAccessLayer\Tool\FileHelper.vb" />
@@ -206,6 +211,10 @@
       <DependentUpon>Application.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
+    <Page Include="01.UserInterfaceLayer\ToolWindows\SelectUsersWindow.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Import Include="System.Threading.Tasks" />
@@ -265,6 +274,15 @@
     <Folder Include="Data\" />
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Resources\DingTalkNodeType02_16px.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\DingTalkNodeType01_16px.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Resources\find_16px.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
     <Content Include="Resources\logo_256px.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -6,7 +6,7 @@
         xmlns:local="clr-namespace:ProcurementArrivalRemindTool"
         mc:Ignorable="d"
         Title="MainWindow"
-        Height="480"
+        Height="700"
         Width="800"
         Icon="../Resources/logo_256px.png"
         WindowStartupLocation="CenterScreen"
@@ -168,6 +168,142 @@
                                                  Grid.Row="2"
                                                  Grid.Column="1"
                                                  Margin="3" />
+
+                </Grid>
+            </GroupBox>
+
+            <GroupBox Header="通知人员设置">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+
+                    <GroupBox Header="忽略人员列表">
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+
+                            <ToolBar>
+                                <Button Click="OpenSelectIgnoreUsersWindow">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <Image Source="../Resources/find_16px.png"
+                                               Stretch="None" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="选择人员..."
+                                                   Margin="3,0,0,0" />
+                                    </Grid>
+                                </Button>
+                            </ToolBar>
+
+                            <ItemsControl x:Name="IgnoreUserItems"
+                                          Grid.Row="1"
+                                          MinHeight="48">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FFF0F0F0"
+                                                BorderThickness="1"
+                                                CornerRadius="3"
+                                                Margin="3"
+                                                Padding="3">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition />
+                                                    <ColumnDefinition />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Text="{Binding Name}"
+                                                           Margin="0,3,0,3" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding JobNumber,StringFormat=({0})}"
+                                                           VerticalAlignment="Center" />
+
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+
+                            </ItemsControl>
+
+                        </Grid>
+
+                    </GroupBox>
+
+                    <GroupBox Header="抄送人员列表"
+                              Grid.Row="1">
+
+                        <Grid>
+                            <Grid.RowDefinitions>
+                                <RowDefinition />
+                                <RowDefinition />
+                            </Grid.RowDefinitions>
+
+                            <ToolBar>
+                                <Button Click="OpenSelectCopyToUsersWindow">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition />
+                                            <ColumnDefinition />
+                                        </Grid.ColumnDefinitions>
+                                        <Image Source="../Resources/find_16px.png"
+                                               Stretch="None" />
+                                        <TextBlock Grid.Column="1"
+                                                   Text="选择人员..."
+                                                   Margin="3,0,0,0" />
+                                    </Grid>
+                                </Button>
+                            </ToolBar>
+
+                            <ItemsControl x:Name="CopyToUserItems" Grid.Row="1"
+                                          MinHeight="48">
+                                <ItemsControl.ItemsPanel>
+                                    <ItemsPanelTemplate>
+                                        <WrapPanel Orientation="Horizontal" />
+                                    </ItemsPanelTemplate>
+                                </ItemsControl.ItemsPanel>
+
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#FFF0F0F0"
+                                                BorderThickness="1"
+                                                CornerRadius="3"
+                                                Margin="3"
+                                                Padding="3">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition />
+                                                    <ColumnDefinition />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock Text="{Binding Name}"
+                                                           Margin="0,3,0,3" />
+                                                <TextBlock Grid.Column="1"
+                                                           Text="{Binding JobNumber,StringFormat=({0})}"
+                                                           VerticalAlignment="Center" />
+
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+
+                            </ItemsControl>
+
+                        </Grid>
+
+                    </GroupBox>
 
                 </Grid>
             </GroupBox>

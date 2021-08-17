@@ -23,10 +23,17 @@ Class MainWindow
 
         StartAutoRun.IsChecked = AppSettingHelper.Instance.StartAutoRun
 
+        IgnoreUserItems.ItemsSource = AppSettingHelper.Instance.IgnoreUserList
+        CopyToUserItems.ItemsSource = AppSettingHelper.Instance.CopyToUserList
+
         SendTimer = New Timer With {
             .Interval = 60 * 1000
         }
         AddHandler SendTimer.Elapsed, AddressOf SendTimerElapsed
+
+        If Debugger.IsAttached Then
+            Exit Sub
+        End If
 
         SendTimer.Start()
 
@@ -298,6 +305,13 @@ where PURTA.TA012 is not null
                                   Continue For
                               End If
 
+                              ' 是否是忽略人员
+                              If AppSettingHelper.Instance.IgnoreUserList.Exists(Function(a)
+                                                                                     Return a.JobNumber = item.QGRY
+                                                                                 End Function) Then
+                                  Continue For
+                              End If
+
                               AppSettingHelper.Instance.SendDocumentIDItems.Add(String.Join("-",
                                                                                             {
                                                                                             item.QGDB,
@@ -309,6 +323,12 @@ where PURTA.TA012 is not null
 
                               ' 发送消息
                               SendDingTalkWorkMessage(AppSettingHelper.Instance.DingTalkUserJobNumberItems(item.QGRY), item)
+
+                              ' 抄送人员
+                              For Each userItem In AppSettingHelper.Instance.CopyToUserList
+                                  ' 抄送消息
+                                  SendCopyToDingTalkWorkMessage(userItem.UserID, item)
+                              Next
 
                           Next
 
@@ -457,6 +477,40 @@ where PURTA.TA012 is not null
     End Sub
 #End Region
 
+#Region "向钉钉用户发送抄送的工作通知消息"
+    ''' <summary>
+    ''' 向钉钉用户发送抄送的工作通知消息
+    ''' </summary>
+    Private Sub SendCopyToDingTalkWorkMessage(dingTalkUserid As String,
+                                              doc As DocumentInfo)
+
+        Dim client As IDingTalkClient = New DefaultDingTalkClient("https://oapi.dingtalk.com/topapi/message/corpconversation/asyncsend_v2")
+        Dim req As New OapiMessageCorpconversationAsyncsendV2Request With {
+            .AgentId = AppSettingHelper.Instance.DingTalkAgentId,
+            .UseridList = dingTalkUserid
+        }
+        Dim obj1 As New OapiMessageCorpconversationAsyncsendV2Request.MsgDomain With {
+            .Msgtype = "markdown"
+        }
+        Dim obj2 As New OapiMessageCorpconversationAsyncsendV2Request.MarkdownDomain With {
+            .Text = $"**<font color=#1296DB>{doc.PM}({doc.PH})</font>**
+
+------
+物料规格 : {doc.GG}  
+请购人员 : {doc.YGXM}({doc.QGRY})  
+请购日期 : {doc.QGRQ:d}  
+请购数量 : {doc.QGSL:n2}  
+验收仓库 : {doc.CK}  
+验收数量 : {doc.YSSL:n2}",
+            .Title = $"{doc.CK} - {doc.PH}"
+        }
+        obj1.Markdown = obj2
+        req.Msg_ = obj1
+        Dim rsp As OapiMessageCorpconversationAsyncsendV2Response = client.Execute(req, AppSettingHelper.Instance.DingTalkAccessToken)
+
+    End Sub
+#End Region
+
 #Region "发送消息给所有主管理员"
     ''' <summary>
     ''' 发送消息给所有主管理员
@@ -558,6 +612,9 @@ where PURTA.TA012 is not null
             AppSettingHelper.Instance.DingTalkAppKey = DingTalkAppKey.Value
             AppSettingHelper.Instance.DingTalkAppSecret = DingTalkAppSecret.Value
 
+            AppSettingHelper.Instance.IgnoreUserList = IgnoreUserItems.ItemsSource
+            AppSettingHelper.Instance.CopyToUserList = CopyToUserItems.ItemsSource
+
         Catch ex As Exception
             Wangk.ResourceWPF.Toast.ShowError(Me, ex.Message)
             Exit Sub
@@ -576,6 +633,36 @@ where PURTA.TA012 is not null
     End Sub
 
     Private Sub NotSaveChange(sender As Object, e As RoutedEventArgs)
+
+    End Sub
+
+    Private Sub OpenSelectIgnoreUsersWindow(sender As Object, e As RoutedEventArgs)
+
+        Dim tmpWindow As New SelectUsersWindow With {
+            .Owner = Me,
+            .Title = "选择忽略人员",
+            .EnableUserList = IgnoreUserItems.ItemsSource
+        }
+
+        tmpWindow.ShowDialog()
+
+        IgnoreUserItems.ItemsSource = Nothing
+        IgnoreUserItems.ItemsSource = tmpWindow.EnableUserList
+
+    End Sub
+
+    Private Sub OpenSelectCopyToUsersWindow(sender As Object, e As RoutedEventArgs)
+
+        Dim tmpWindow As New SelectUsersWindow With {
+            .Owner = Me,
+            .Title = "选择抄送人员",
+            .EnableUserList = CopyToUserItems.ItemsSource
+        }
+
+        tmpWindow.ShowDialog()
+
+        CopyToUserItems.ItemsSource = Nothing
+        CopyToUserItems.ItemsSource = tmpWindow.EnableUserList
 
     End Sub
 
