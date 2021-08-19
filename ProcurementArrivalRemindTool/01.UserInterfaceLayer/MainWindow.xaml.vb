@@ -56,8 +56,8 @@ Class MainWindow
         End If
 
         ' 清空昨天的发送记录
-        If Now.Year <> AppSettingHelper.Instance.LastSendDate.Year AndAlso
-            Now.Month <> AppSettingHelper.Instance.LastSendDate.Month AndAlso
+        If Now.Year <> AppSettingHelper.Instance.LastSendDate.Year OrElse
+            Now.Month <> AppSettingHelper.Instance.LastSendDate.Month OrElse
             Now.Day <> AppSettingHelper.Instance.LastSendDate.Day Then
 
             AppSettingHelper.Instance.SendDocumentIDItems.Clear()
@@ -614,7 +614,7 @@ where PURTA.TA012 is not null
 
             AppSettingHelper.Instance.StartAutoRun = StartAutoRun.IsChecked
 
-            AppSettingHelper.Instance.SearchTimeSpan = New TimeSpan(0, Val(SearchTimeSpan.Value), 0)
+            AppSettingHelper.Instance.SearchTimeSpan = New TimeSpan(Val(SearchTimeSpan.Value) \ 60, Val(SearchTimeSpan.Value) Mod 60, 0)
 
             AppSettingHelper.Instance.ERPSqlServerConnStr = ERPSqlServerConnStr.Value
 
