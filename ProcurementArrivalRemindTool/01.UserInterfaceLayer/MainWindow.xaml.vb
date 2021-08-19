@@ -323,11 +323,21 @@ where PURTA.TA012 is not null
 
                               ' 发送消息
                               SendDingTalkWorkMessage(AppSettingHelper.Instance.DingTalkUserJobNumberItems(item.QGRY), item)
+                              AppSettingHelper.Instance.Logger.Info($"单据编号 {String.Join("-",
+                                                                                        {
+                                                                                        item.QGDB,
+                                                                                        item.QGDH,
+                                                                                        item.QGXH,
+                                                                                        $"{item.YSSL:n2}",
+                                                                                        $"{item.YSRQ:d}"
+                                                                                        })}")
+                              AppSettingHelper.Instance.Logger.Info($"发送通知消息至 {item.YGXM}({item.QGRY})")
 
                               ' 抄送人员
                               For Each userItem In AppSettingHelper.Instance.CopyToUserList
                                   ' 抄送消息
                                   SendCopyToDingTalkWorkMessage(userItem.UserID, item)
+                                  AppSettingHelper.Instance.Logger.Info($"抄送通知消息至 {userItem.Name}({userItem.JobNumber})")
                               Next
 
                           Next
