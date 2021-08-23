@@ -227,16 +227,16 @@ where PURTA.TA012 is not null
                           Console.WriteLine($"表单数 : {AppSettingHelper.Instance.DocumentItems.Count}")
 #End Region
 
+#Region "获取钉钉AccessToken"
+                          uie.Write("获取钉钉AccessToken", 1 * 100 / stepCount)
+
+                          GetDingTalkAccessToken()
+#End Region
+
                           ' 判断是否有无对应的钉钉账号的ERP用户
                           If Not AppSettingHelper.Instance.DocumentItems.All(Function(s1)
                                                                                  Return AppSettingHelper.Instance.DingTalkUserJobNumberItems.ContainsKey(s1.QGRY)
                                                                              End Function) Then
-
-#Region "获取钉钉AccessToken"
-                              uie.Write("获取钉钉AccessToken", 1 * 100 / stepCount)
-
-                              GetDingTalkAccessToken()
-#End Region
 
 #Region "获取钉钉部门信息"
                               uie.Write("获取钉钉部门信息", 2 * 100 / stepCount)
@@ -275,6 +275,9 @@ where PURTA.TA012 is not null
 
                           Dim tmpID = 1
                           For Each item In AppSettingHelper.Instance.DocumentItems
+
+                              ' 钉钉限制发送频率 1500/min
+                              Threading.Thread.Sleep(100)
 
                               uie.Write($"发送工作通知消息 {tmpID}/{AppSettingHelper.Instance.DocumentItems.Count}")
                               tmpID += 1
@@ -385,6 +388,7 @@ where PURTA.TA012 is not null
         req.Appsecret = AppSettingHelper.Instance.DingTalkAppSecret
         req.SetHttpMethod("GET")
         Dim rsp As OapiGettokenResponse = client.Execute(req, Nothing)
+
         AppSettingHelper.Instance.DingTalkAccessToken = rsp.AccessToken
 
     End Sub
@@ -477,12 +481,15 @@ where PURTA.TA012 is not null
 请购日期 : {doc.QGRQ:d}  
 请购数量 : {doc.QGSL:n2}  
 验收仓库 : {doc.CK}  
-验收数量 : {doc.YSSL:n2}",
+验收数量 : {doc.YSSL:n2}
+> {Now:G}",
             .Title = $"{doc.CK} - {doc.PH}"
         }
         obj1.Markdown = obj2
         req.Msg_ = obj1
         Dim rsp As OapiMessageCorpconversationAsyncsendV2Response = client.Execute(req, AppSettingHelper.Instance.DingTalkAccessToken)
+
+        AppSettingHelper.Instance.Logger.Info($"消息TaskId {rsp.TaskId} {rsp.Errcode}-{rsp.Errmsg}")
 
     End Sub
 #End Region
@@ -511,12 +518,15 @@ where PURTA.TA012 is not null
 请购日期 : {doc.QGRQ:d}  
 请购数量 : {doc.QGSL:n2}  
 验收仓库 : {doc.CK}  
-验收数量 : {doc.YSSL:n2}",
+验收数量 : {doc.YSSL:n2}
+> {Now:G}",
             .Title = $"{doc.CK} - {doc.PH}"
         }
         obj1.Markdown = obj2
         req.Msg_ = obj1
         Dim rsp As OapiMessageCorpconversationAsyncsendV2Response = client.Execute(req, AppSettingHelper.Instance.DingTalkAccessToken)
+
+        AppSettingHelper.Instance.Logger.Info($"消息TaskId {rsp.TaskId} {rsp.Errcode}-{rsp.Errmsg}")
 
     End Sub
 #End Region
