@@ -158,10 +158,10 @@ from
 
     -- 进货单单身档
     from PURTH
-    -- 审核码
-    where TH030='Y'
+
+    where 
     -- 验收日期
-    and TH014='{Now:yyyyMMdd}') as TempPURTH
+    TH014='{Now:yyyyMMdd}') as TempPURTH
 
 -- 采购单单身信息档
 left join PURTD
