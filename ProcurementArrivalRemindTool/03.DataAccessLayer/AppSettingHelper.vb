@@ -90,6 +90,11 @@ Public Class AppSettingHelper
                 Dim assemblyLocation = System.Reflection.Assembly.GetExecutingAssembly().Location
                 _instance._ProductVersion = System.Diagnostics.FileVersionInfo.GetVersionInfo(assemblyLocation).ProductVersion
 
+                ' 添加数据库
+                If Not File.Exists($"{System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\Hunan Yestech\{My.Application.Info.ProductName}\Data\LocalDatabase.db") Then
+                    File.Copy("Data\LocalDatabase.db", $"{System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\Hunan Yestech\{My.Application.Info.ProductName}\Data\LocalDatabase.db", True)
+                End If
+
             End If
 
             Return _instance
@@ -250,10 +255,9 @@ Public Class AppSettingHelper
 #End Region
 
     ''' <summary>
-    ''' 输入历史
-    ''' </summary>
-    Public InputHistoryItems As New Dictionary(Of String, List(Of String)) From {
-    }
+    ''' 本地数据库地址
+    ''' </summary> 
+    Public Shared SQLiteConnection As String = $"data source= {System.Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData)}\Hunan Yestech\{My.Application.Info.ProductName}\Data\LocalDatabase.db"
 
     ''' <summary>
     ''' 开机启动
@@ -263,7 +267,18 @@ Public Class AppSettingHelper
     ''' <summary>
     ''' 上次发送的时间
     ''' </summary>
-    Public LastSendDate As DateTime = Now.AddDays(-1)
+    <JsonIgnore>
+    Public Property LastSendDate As DateTime
+        Get
+            Dim tmpValue = LocalDatabaseHelper.GetOption(Of Date?)(NameOf(LastSendDate))
+            Return tmpValue.GetValueOrDefault(Now.AddDays(-1))
+        End Get
+
+        Set(value As Date)
+            LocalDatabaseHelper.SetOption(NameOf(LastSendDate), value)
+        End Set
+
+    End Property
 
     ''' <summary>
     ''' 查询时间间隔
@@ -301,11 +316,6 @@ Public Class AppSettingHelper
     ''' </summary>
     <Newtonsoft.Json.JsonIgnore>
     Public DocumentItems As New List(Of DocumentInfo)
-
-    ''' <summary>
-    ''' 已发送表单ID
-    ''' </summary>
-    Public SendDocumentIDItems As New HashSet(Of String)
 
     ''' <summary>
     ''' 钉钉员工工号查找表

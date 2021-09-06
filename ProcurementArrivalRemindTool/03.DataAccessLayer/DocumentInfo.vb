@@ -60,4 +60,20 @@
     ''' </summary>
     Public YSRQ As Date
 
+    ''' <summary>
+    ''' 文档主键
+    ''' </summary>
+    Public ReadOnly Property KeyStr As String
+        Get
+            Return Wangk.Hash.SHAHelper.GetStrSHA512(String.Join("-",
+                                                                 {
+                                                                 QGDB,
+                                                                 QGDH,
+                                                                 QGXH,
+                                                                 $"{YSSL:n2}",
+                                                                 $"{YSRQ:d}"
+                                                                 }))
+        End Get
+    End Property
+
 End Class

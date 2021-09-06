@@ -60,14 +60,13 @@ Class MainWindow
             Now.Month <> AppSettingHelper.Instance.LastSendDate.Month OrElse
             Now.Day <> AppSettingHelper.Instance.LastSendDate.Day Then
 
-            AppSettingHelper.Instance.SendDocumentIDItems.Clear()
+            LocalDatabaseHelper.ClearSendDocumentItems()
             Analytics.TrackEvent("清空昨天的发送记录")
             AppSettingHelper.Instance.Logger.Info("清空昨天的发送记录")
 
         End If
 
         AppSettingHelper.Instance.LastSendDate = Now
-        AppSettingHelper.SaveToLocaltion()
 
         Analytics.TrackEvent("自动查找数据")
         AppSettingHelper.Instance.Logger.Info("自动查找数据")
@@ -82,8 +81,6 @@ Class MainWindow
 
         SendTimer.Stop()
         RemoveHandler SendTimer.Elapsed, AddressOf SendTimerElapsed
-
-        AppSettingHelper.SaveToLocaltion()
 
         System.Windows.Application.Current.Shutdown()
 
@@ -283,14 +280,7 @@ where PURTA.TA012 is not null
                               tmpID += 1
 
                               ' 判断是否发送过
-                              If AppSettingHelper.Instance.SendDocumentIDItems.Contains(String.Join("-",
-                                                                                                    {
-                                                                                                    item.QGDB,
-                                                                                                    item.QGDH,
-                                                                                                    item.QGXH,
-                                                                                                    $"{item.YSSL:n2}",
-                                                                                                    $"{item.YSRQ:d}"
-                                                                                                    })) Then
+                              If LocalDatabaseHelper.IsDocumentSend(item.KeyStr) Then
                                   Continue For
                               End If
 
@@ -315,14 +305,7 @@ where PURTA.TA012 is not null
                                   Continue For
                               End If
 
-                              AppSettingHelper.Instance.SendDocumentIDItems.Add(String.Join("-",
-                                                                                            {
-                                                                                            item.QGDB,
-                                                                                            item.QGDH,
-                                                                                            item.QGXH,
-                                                                                            $"{item.YSSL:n2}",
-                                                                                            $"{item.YSRQ:d}"
-                                                                                            }))
+                              LocalDatabaseHelper.AddSendDocument(item.KeyStr)
 
                               ' 发送消息
                               SendDingTalkWorkMessage(AppSettingHelper.Instance.DingTalkUserJobNumberItems(item.QGRY), item)
@@ -344,8 +327,6 @@ where PURTA.TA012 is not null
                               Next
 
                           Next
-
-                          AppSettingHelper.SaveToLocaltion()
 
                           ' 通知管理员更新账号信息
                           If NotHaveJobNumberUserItems.Count > 0 Then
