@@ -1,11 +1,8 @@
 ﻿Imports System.Data.SqlClient
-Imports System.IO
 Imports System.Timers
 Imports DingTalk.Api
 Imports DingTalk.Api.Request
 Imports DingTalk.Api.Response
-Imports Microsoft.AppCenter.Analytics
-Imports OfficeOpenXml
 
 Class MainWindow
 
@@ -16,10 +13,7 @@ Class MainWindow
         Me.Title = $"{My.Application.Info.Title} V{AppSettingHelper.Instance.ProductVersion}"
 
         '设置使用方式为个人使用
-        ExcelPackage.LicenseContext = LicenseContext.NonCommercial
-
-        Dim tmpAppCenterSparkle As New AppCenterSparkle(AppSettingHelper.AppKey, Me)
-        tmpAppCenterSparkle.CheckUpdateAsync()
+        'ExcelPackage.LicenseContext = LicenseContext.NonCommercial
 
         StartAutoRun.IsChecked = AppSettingHelper.Instance.StartAutoRun
 
@@ -61,14 +55,12 @@ Class MainWindow
             Now.Day <> AppSettingHelper.Instance.LastSendDate.Day Then
 
             LocalDatabaseHelper.ClearSendDocumentItems()
-            Analytics.TrackEvent("清空昨天的发送记录")
             AppSettingHelper.Instance.Logger.Info("清空昨天的发送记录")
 
         End If
 
         AppSettingHelper.Instance.LastSendDate = Now
 
-        Analytics.TrackEvent("自动查找数据")
         AppSettingHelper.Instance.Logger.Info("自动查找数据")
 
         Me.Dispatcher.Invoke(Sub()
@@ -114,7 +106,8 @@ Class MainWindow
     Private Sub WorkFunction(sender As Object, e As RoutedEventArgs)
 
         If e IsNot Nothing Then
-            Analytics.TrackEvent("手动查找数据")
+            LogHelper.LogEvent("手动查找数据")
+            'Analytics.TrackEvent("手动查找数据")
             AppSettingHelper.Instance.Logger.Info("手动查找数据")
         End If
 
@@ -307,6 +300,8 @@ where PURTA.TA012 is not null
 
                               LocalDatabaseHelper.AddSendDocument(item.KeyStr)
 
+                              LogHelper.LogEvent("发送通知消息")
+
                               ' 发送消息
                               SendDingTalkWorkMessage(AppSettingHelper.Instance.DingTalkUserJobNumberItems(item.QGRY), item)
                               AppSettingHelper.Instance.Logger.Info($"单据编号 {String.Join("-",
@@ -321,6 +316,7 @@ where PURTA.TA012 is not null
 
                               ' 抄送人员
                               For Each userItem In AppSettingHelper.Instance.CopyToUserList
+                                  LogHelper.LogEvent("抄送通知消息")
                                   ' 抄送消息
                                   SendCopyToDingTalkWorkMessage(userItem.UserID, item)
                                   AppSettingHelper.Instance.Logger.Info($"抄送通知消息至 {userItem.Name}({userItem.JobNumber})")
